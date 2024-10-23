@@ -28,61 +28,83 @@ public_users.post("/register", (req,res) => {
 
 // Get the book list available in the shop
 public_users.get('/',function (req, res) {
-    return res.send(JSON.stringify(books, null, 4));
+    let promise = new Promise((resolve, reject) => {
+        setTimeout(() => {resolve(books)}, 3000);
+    });
+
+    promise.then((success) => {
+        return res.status(200).json(success);
+    });
 });
 
 // Get book details based on ISBN
-public_users.get('/isbn/:isbn',function (req, res) {
+public_users.get('/isbn/:isbn',async function (req, res) {
     // Retireve the isbn from the request url and send the corresponding book
     const isbn = req.params.isbn;
-    return res.send(books[isbn]);
+    
+    let promise = new Promise((resolve, reject) => {
+        setTimeout(() => {resolve(books[isbn])}, 3000);
+    });
+
+    const book = await promise;
+
+    if (book) {
+        return res.status(200).json(book);
+    } else {
+        return res.status(404).json({message: "book not found"});
+    }
 });
   
 // Get book details based on author
-public_users.get('/author/:author',function (req, res) {
-    // Retrieve the author name from the url
-    const author = req.params.author;
-    // Convert the author name to be compared to the books
-    const author_names = author.split("-");
-    let booksByAuthor = [];
-    // Check for all books if the author name matches
-    for (isbn in books) {
-        const names = books[isbn].author.toLowerCase();
-        const those_names = names.split(" ");
-        // Add the element to the list if there is a match
-        if (JSON.stringify(those_names) === JSON.stringify(author_names)) {
-            booksByAuthor.push({
-                "isbn": isbn,
-                "author": books[isbn].author,
-                "title": books[isbn].title,
-                "reviews": books[isbn].reviews,
-            });
-        }
+public_users.get('/author/:author',async function (req, res) {
+    const author_ = req.params.author;
+    const author = author_.replace("_", " ");
+
+    let promise = new Promise((resolve, reject) => {
+        setTimeout(() => {
+            let booksByAuthor = {};
+            for (isbn in books) {
+                if (books[isbn].author === author) {
+                    booksByAuthor[isbn] = books[isbn];
+                }
+            }
+            resolve(booksByAuthor);
+        }, 3000);
+    });
+
+    const booksByAuthor = await promise;
+
+    if (booksByAuthor == {}) {
+        return res.status(404).json({message: "Author not found"});
+    } else {
+        return res.status(200).json(booksByAuthor);
     }
-    return res.send(booksByAuthor);
 });
 
 // Get all books based on title
-public_users.get('/title/:title',function (req, res) {
-    // Retrieve the book title in the url
-    const title = req.params.title;
-    // Convert the book title url so it can be compared
-    const title_words = title.split("-");
-    let booksByTitle = [];
-    // Iterate through the books and compare the title
-    for (isbn in books) {
-        const phrase = books[isbn].title.toLowerCase();
-        const words = phrase.split(" ");
-        if (JSON.stringify(words) === JSON.stringify(title_words)) {
-            booksByTitle.push({
-                "isbn": isbn,
-                "author": books[isbn].author,
-                "title": books[isbn].title,
-                "reviews": books[isbn].reviews,
-            });
-        }
+public_users.get('/title/:title',async function (req, res) {
+    const title_ = req.params.title;
+    const title = title_.replace("_", " ");
+
+    let promise = new Promise((resolve, reject) => {
+        setTimeout(() => {
+            let booksByTitle = {};
+            for (isbn in books) {
+                if (books[isbn].title === title) {
+                    booksByTitle[isbn] = books[isbn];
+                }
+            }
+            resolve(booksByTitle);
+        }, 3000);
+    });
+
+    const booksByTitle = await promise;
+
+    if (booksByTitle == {}) {
+        return res.status(404).json({message: "Title not found"});
+    } else {
+        return res.status(200).json(booksByTitle);
     }
-    return res.send(booksByTitle);
 });
 
 //  Get book review
