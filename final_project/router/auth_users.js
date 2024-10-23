@@ -23,7 +23,7 @@ const authenticatedUser = (username, password) => { //returns boolean
     let validusers = users.filter((user) => {
         return (user.username === username && user.password === password);
     });
-    // Return ture if any user is found, false otherwise
+    // Return true if any user is found, false otherwise
     if (validusers.length > 0) {
         return true;
     } else {
@@ -56,8 +56,16 @@ regd_users.post("/login", (req,res) => {
 
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+    const isbn = req.params.isbn;
+    const review = req.body.review;
+    const username = req.session.username;
+    const book = books[isbn];
+    if (!book) {
+        return res.status(404).json({message: "Book not found"});
+    } else {
+        book.reviews[username] = review;
+        return res.status(200).json({message: "Review posted"})
+    }
 });
 
 module.exports.authenticated = regd_users;
